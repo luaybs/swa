@@ -28,3 +28,4 @@ lib/CutyCapt
 public/images/sites/*
 *.rdb
 pdfs
+.env
