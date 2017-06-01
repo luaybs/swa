@@ -4,20 +4,13 @@ require 'tty'
 
 require 'swa/globals'
 require 'swa/cloud_client'
+require 'swa/cloud_stats'
 require 'swa/application'
 
 module Swa
   class << self
     def run
-      Swa::Application.init
-    end
-
-    def aws_wrapper(&block)
-      begin
-        block.call
-      rescue StandardError => e
-        puts "ERROR: #{e.message}"
-      end
+      Swa::Application.new.run
     end
   end
 end

@@ -3,6 +3,7 @@ module Swa
               start:  "Start Instance",
               stop:   "Stop Instance",
               ip:     "Get IP of Instance",
+              stats:  "Instance Stats",
               quit:   "Quit"}.freeze
 
   REGIONS = { "US East (Ohio)" => "us-east-2",
