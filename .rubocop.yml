@@ -1,0 +1,169 @@
+inherit_from: rubocop/default.yml
+
+AllCops:
+  DisabledByDefault: true
+
+Style/AlignHash:
+  EnforcedColonStyle: key
+  EnforcedLastArgumentHashStyle: always_ignore
+  EnforcedHashRocketStyle: key
+
+Style/ClassAndModuleChildren:
+  EnforcedStyle: compact
+
+Style/CollectionMethods:
+  PreferredMethods:
+    collect: 'map'
+    collect!: 'map!'
+    inject: 'reduce'
+    detect: 'detect'
+    find_all: 'select'
+
+Style/SpaceInLambdaLiteral:
+  EnforcedStyle: require_space
+
+Style/MethodDefParentheses:
+  EnforcedStyle: require_parentheses
+
+Style/MultilineAssignmentLayout:
+  EnforcedStyle: same_line
+
+Style/NonNilCheck:
+  IncludeSemanticChanges: true
+
+Style/OptionHash:
+  # A list of parameter names that will be flagged by this cop.
+  SuspiciousParamNames: []
+
+Style/RaiseArgs:
+  EnforcedStyle: compact
+
+Style/RedundantReturn:
+  AllowMultipleReturnValues: true
+
+Style/Semicolon:
+  AllowAsExpressionSeparator: true
+
+Style/SingleLineBlockParams:
+  Methods:
+    - reduce:
+        - memo
+        - elem
+    - inject:
+        - memo
+        - elem
+
+Style/StringLiterals:
+  EnforcedStyle: double_quotes
+
+Style/TernaryParentheses:
+  EnforcedStyle: require_parentheses_when_complex
+
+Style/WordArray:
+  Enabled: false
+
+Metrics/MethodLength:
+  Enabled: false
+
+Metrics/ModuleLength:
+  Enabled: false
+
+Metrics/ParameterLists:
+  CountKeywordArgs: false
+
+Lint/InheritException:
+  EnforcedStyle: standard_error
+
+Rails/SkipsModelValidations:
+  Blacklist: []
+
+Performance/StringReplacement:
+  Description: >-
+                  Use `tr` instead of `gsub` when you are replacing the same
+                  number of characters. Use `delete` instead of `gsub` when
+                  you are deleting characters.
+  Reference: 'https://github.com/JuanitoFatas/fast-ruby#stringgsub-vs-stringtr-code'
+  Enabled: false
+
+Style/Documentation:
+  Description: 'Document classes and non-namespace modules.'
+  Enabled: false
+  Exclude:
+    - 'spec/**/*'
+    - 'test/**/*'
+
+Metrics/LineLength:
+  Max: 125
+  # To make it possible to copy or click on URIs in the code, we allow lines
+  # containing a URI to be longer than Max.
+  AllowHeredoc: true
+  AllowURI: true
+  URISchemes:
+    - http
+    - https
+  # The IgnoreCopDirectives option causes the LineLength rule to ignore cop
+  # directives like '# rubocop: enable ...' when calculating a line's length.
+  IgnoreCopDirectives: false
+  # The IgnoredPatterns option is a list of !ruby/regexp and/or string
+  # elements. Strings will be converted to Regexp objects. A line that matches
+  # any regular expression listed in this option will be ignored by LineLength.
+  IgnoredPatterns: []
+
+Style/AccessorMethodName:
+  Description: Check the naming of accessor methods for get_/set_.
+  StyleGuide: '#accessor_mutator_method_names'
+  Enabled: false
+
+Metrics/AbcSize:
+  # The ABC size is a calculated magnitude, so this number can be an Integer or
+  # a Float.
+  Enabled: false
+
+Style/GuardClause:
+  Description: 'Check for conditionals that can be replaced with guard clauses'
+  StyleGuide: '#no-nested-conditionals'
+  Enabled: false
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
+
+Metrics/ClassLength:
+  Enabled: false
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Style/SafeNavigation:
+  Enabled: false
+
+Metrics/CyclomaticComplexity:
+  Enabled: false
+
+Metrics/PerceivedComplexity:
+  Enabled: false
+
+Metrics/BlockNesting:
+  CountBlocks: false
+  Max: 4
+
+Lint/UnderscorePrefixedVariableName:
+  Enabled: false
+
+Style/EmptyMethod:
+  EnforcedStyle: expanded
+
+Performance/Casecmp:
+  Enabled: false
+
+Style/RedundantBegin:
+  Enabled: false
+
+Lint/AmbiguousBlockAssociation:
+  Enabled: false
+
+Style/SpecialGlobalVars:
+  Enabled: false
+
+Style/EachWithObject:
+  Description: 'Prefer `each_with_object` over `inject` or `reduce`.'
+  Enabled: false

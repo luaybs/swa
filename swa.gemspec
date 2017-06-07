@@ -28,7 +28,6 @@ Gem::Specification.new do |spec|
   end
   spec.bindir        = "bin"
   spec.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
-  # spec.executables   = ["swa"]
   spec.require_paths = ["lib"]
 
   spec.add_development_dependency "bundler", "~> 1.13"
@@ -38,4 +37,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "dotenv"
   spec.add_development_dependency "tty"
   spec.add_development_dependency "aws-sdk", "~> 2"
+  spec.add_development_dependency "rubocop"
 end

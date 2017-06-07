@@ -145,7 +145,6 @@ module Swa
       load_15 = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "load_15"})).datapoints.first.average.round(2)
       procs = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "procs"})).datapoints.first.average.round(2)
 
-
       return {memory: mem,
               cpu: cpu_user,
               loads: "#{load_1} / #{load_5} / #{load_15}",
