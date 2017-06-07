@@ -9,7 +9,7 @@ Style/AlignHash:
   EnforcedHashRocketStyle: key
 
 Style/ClassAndModuleChildren:
-  EnforcedStyle: compact
+  EnforcedStyle: nested
 
 Style/CollectionMethods:
   PreferredMethods:

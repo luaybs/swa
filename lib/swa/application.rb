@@ -9,54 +9,55 @@ module Swa
 
     def run
       loop do
-        selected_command = self.prompt.select("What would you like to do?", COMMANDS.values)
+        selected_command = prompt.select("What would you like to do?", COMMANDS.values)
 
         if quit?(selected_command)
           puts "Bye!"
           break
         end
 
-        selected_region = self.prompt.select("Which region are you working with?", REGIONS)
+        selected_region = prompt.select("Which region are you working with?", REGIONS)
         set_opsworks(selected_region)
         set_cloudwatch(selected_region)
 
         puts "Grabbing stacks..."
-        stacks = self.opsworks.describe_stacks.stacks
-        stack_user = self.prompt.select("Which stack?", stacks.map(&:name))
-        stack_id = stacks.select{ |s| s.name == stack_user }.first.stack_id
+        stacks = opsworks.describe_stacks.stacks
+        stack_user = prompt.select("Which stack?", stacks.map(&:name))
+        stack_id = stacks.select { |s| s.name == stack_user }.first.stack_id
 
         rescue_wrapper do
           case selected_command
           when COMMANDS[:deploy]
             puts "Grabbing apps..."
-            apps = self.opsworks.describe_apps({stack_id: stack_id}).apps
-            app_user = self.prompt.select("Which app?", apps.map(&:name))
-            selected_app = apps.select{ |a| a.name == app_user }.first
+            apps = opsworks.describe_apps(stack_id: stack_id).apps
+            app_user = prompt.select("Which app?", apps.map(&:name))
+            selected_app = apps.select { |a| a.name == app_user }.first
 
             deploy_id = deploy_app(stack_id, selected_app.app_id)
 
-            print_result("Deployed #{selected_app.name}! ID: " + self.pastel.on_bright_white.black("#{deploy_id.deployment_id}"))
+            print_result("Deployed #{selected_app.name}! ID: " + pastel.on_bright_white.black(deploy_id.deployment_id.to_s))
           when COMMANDS[:start]
             puts "Grabbing offline instances..."
             selected_instance = grab_instance(stack_id, filter_status: "stopped")
-            self.opsworks.start_instance({instance_id: selected_instance.instance_id})
+            opsworks.start_instance(instance_id: selected_instance.instance_id)
 
             print_result("Started #{selected_instance.hostname}!")
           when COMMANDS[:stop]
             puts "Grabbing online instances..."
             selected_instance = grab_instance(stack_id, filter_status: "online")
-            self.opsworks.stop_instance({instance_id: selected_instance.instance_id})
+            opsworks.stop_instance(instance_id: selected_instance.instance_id)
 
             print_result("Stopped #{selected_instance.hostname}!")
           when COMMANDS[:ip]
             puts "Grabbing instances..."
             selected_instance = grab_instance(stack_id)
 
-            print_result("The IP of #{selected_instance.hostname} is: " + self.pastel.on_bright_white.black("#{selected_instance.public_ip || selected_instance.elastic_ip || selected_instance.private_ip}"))
+            ip = selected_instance.public_ip || selected_instance.elastic_ip || selected_instance.private_ip
+            print_result("The IP of #{selected_instance.hostname} is: " + pastel.on_bright_white.black(ip.to_s))
           when COMMANDS[:stats]
             puts "Grabbing online instances..."
             selected_instance = grab_instance(stack_id, filter_status: "online")
-            res = get_stats(selected_region, selected_instance.instance_id)
+            res = get_stats(selected_instance.instance_id)
 
             puts("\nThe #{selected_instance.hostname} stats: \n")
 
@@ -80,25 +81,21 @@ module Swa
     end
 
     def set_opsworks(region)
-      self.opsworks = Swa::CloudClient.new({region: region}).opsworks
+      self.opsworks = Swa::CloudClient.new(region: region).opsworks
     end
 
     def set_cloudwatch(region)
-      self.cloudwatch = Swa::CloudStats.new({region: region}).cloudwatch
+      self.cloudwatch = Swa::CloudStats.new(region: region).cloudwatch
     end
 
     def deploy_app(stack_id, app_id)
-      self.opsworks.create_deployment({
+      opsworks.create_deployment(
         stack_id: stack_id,
         app_id:   app_id,
-        command:  {
-                    name: "deploy",
-                    args: {
-                      "migrate" => ["true"],
-                    }
-                  },
+        command:  { name: "deploy",
+                    args: { "migrate" => ["true"] } },
         comment:  "Deploying from swa CLI"
-      })
+      )
     end
 
     def print_result(output)
@@ -106,54 +103,50 @@ module Swa
     end
 
     def instances_with_status(instances, filter_status)
-      instances.select{ |i| i.status == filter_status }
+      instances.select { |i| i.status == filter_status }
     end
 
     def grab_instance(stack_id, filter_status: nil)
-      instances = self.opsworks.describe_instances({stack_id: stack_id}).instances
+      instances = opsworks.describe_instances(stack_id: stack_id).instances
       instances = instances_with_status(instances, filter_status) if filter_status
-      selected_instance_id = self.prompt.select("Which instance?", instances.reduce({}) {|m, i| m.merge!({"#{i.hostname} -- #{i.status}" => i.instance_id}); m })
+      instance_options = instances.reduce({}) { |m, i| m["#{i.hostname} -- #{i.status}"] = i.instance_id; m }
+      selected_instance_id = prompt.select("Which instance?", instance_options)
 
-      instances.select{ |i| i.instance_id == selected_instance_id }.first
+      instances.select { |i| i.instance_id == selected_instance_id }.first
     end
 
-    def get_stats(region, instance_id)
+    def get_stats(instance_id)
       period = (24 * 60)
       options = { namespace: "AWS/OpsWorks",
                   metric_name: "",
-                  dimensions: [
-                    {
-                      name: "InstanceId",
-                      value: instance_id,
-                    },
-                  ],
+                  dimensions: [{ name: "InstanceId", value: instance_id }],
                   start_time: Time.now - period,
                   end_time: Time.now,
                   period: period,
                   statistics: ["Average"] }
 
-      avg_free = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "memory_free"})).datapoints.first.average
-      avg_total = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "memory_total"})).datapoints.first.average
+      avg_free = cloudwatch.get_metric_statistics(options.merge(metric_name: "memory_free")).datapoints.first.average
+      avg_total = cloudwatch.get_metric_statistics(options.merge(metric_name: "memory_total")).datapoints.first.average
 
       rounded_avg_free_in_gb = (avg_free / 1024 / 1024).round(2)
       rounded_avg_total_in_gb = (avg_total / 1024 / 1024).round(2)
 
       mem = "#{rounded_avg_free_in_gb} / #{rounded_avg_total_in_gb}"
-      cpu_user = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "cpu_user"})).datapoints.first.average.round(2)
-      load_1 = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "load_1"})).datapoints.first.average.round(2)
-      load_5 = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "load_5"})).datapoints.first.average.round(2)
-      load_15 = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "load_15"})).datapoints.first.average.round(2)
-      procs = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "procs"})).datapoints.first.average.round(2)
+      cpu_user = cloudwatch.get_metric_statistics(options.merge(metric_name: "cpu_user")).datapoints.first.average.round(2)
+      load_one = cloudwatch.get_metric_statistics(options.merge(metric_name: "load_1")).datapoints.first.average.round(2)
+      load_five = cloudwatch.get_metric_statistics(options.merge(metric_name: "load_5")).datapoints.first.average.round(2)
+      load_fifteen = cloudwatch.get_metric_statistics(options.merge(metric_name: "load_15")).datapoints.first.average.round(2)
+      procs = cloudwatch.get_metric_statistics(options.merge(metric_name: "procs")).datapoints.first.average.round(2)
 
-      return {memory: mem,
-              cpu: cpu_user,
-              loads: "#{load_1} / #{load_5} / #{load_15}",
-              procs: procs}
+      { memory: mem,
+        cpu: cpu_user,
+        loads: "#{load_one} / #{load_five} / #{load_fifteen}",
+        procs: procs }
     end
 
-    def rescue_wrapper(&block)
+    def rescue_wrapper
       begin
-        block.call
+        yield
       rescue StandardError => e
         puts "ERROR: #{e.message}"
       end
