@@ -57,6 +57,17 @@ module Swa
             puts "Grabbing online instances..."
             selected_instance = grab_instance(stack_id, filter_status: "online")
             res = get_stats(selected_region, selected_instance.instance_id)
+
+            puts("\nThe #{selected_instance.hostname} stats: \n")
+
+            table = TTY::Table.new(header: ["Metric", "Value (Average)"]) do |t|
+              t << ["Memory (GB)", res[:memory]]
+              t << ["CPU Usage (%)", res[:cpu]]
+              t << ["Load (1/5/15)", res[:loads]]
+              t << ["Procs", res[:procs]]
+            end
+
+            puts table.render(:ascii)
           end
         end
       end
@@ -124,7 +135,21 @@ module Swa
       avg_free = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "memory_free"})).datapoints.first.average
       avg_total = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "memory_total"})).datapoints.first.average
 
-      "#{(avg_free / 1024 /1024).round(2)} / #{(avg_total / 1024 / 1024).round(2)}"
+      rounded_avg_free_in_gb = (avg_free / 1024 / 1024).round(2)
+      rounded_avg_total_in_gb = (avg_total / 1024 / 1024).round(2)
+
+      mem = "#{rounded_avg_free_in_gb} / #{rounded_avg_total_in_gb}"
+      cpu_user = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "cpu_user"})).datapoints.first.average.round(2)
+      load_1 = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "load_1"})).datapoints.first.average.round(2)
+      load_5 = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "load_5"})).datapoints.first.average.round(2)
+      load_15 = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "load_15"})).datapoints.first.average.round(2)
+      procs = self.cloudwatch.get_metric_statistics(options.merge({metric_name: "procs"})).datapoints.first.average.round(2)
+
+
+      return {memory: mem,
+              cpu: cpu_user,
+              loads: "#{load_1} / #{load_5} / #{load_15}",
+              procs: procs}
     end
 
     def rescue_wrapper(&block)
