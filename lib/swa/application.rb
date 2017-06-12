@@ -127,16 +127,15 @@ module Swa
 
       avg_free = cloudwatch.get_metric_statistics(options.merge(metric_name: "memory_free")).datapoints.first.average
       avg_total = cloudwatch.get_metric_statistics(options.merge(metric_name: "memory_total")).datapoints.first.average
-
-      rounded_avg_free_in_gb = (avg_free / 1024 / 1024).round(2)
-      rounded_avg_total_in_gb = (avg_total / 1024 / 1024).round(2)
-
-      mem = "#{rounded_avg_free_in_gb} / #{rounded_avg_total_in_gb}"
       cpu_user = cloudwatch.get_metric_statistics(options.merge(metric_name: "cpu_user")).datapoints.first.average.round(2)
       load_one = cloudwatch.get_metric_statistics(options.merge(metric_name: "load_1")).datapoints.first.average.round(2)
       load_five = cloudwatch.get_metric_statistics(options.merge(metric_name: "load_5")).datapoints.first.average.round(2)
       load_fifteen = cloudwatch.get_metric_statistics(options.merge(metric_name: "load_15")).datapoints.first.average.round(2)
       procs = cloudwatch.get_metric_statistics(options.merge(metric_name: "procs")).datapoints.first.average.round(2)
+
+      rounded_avg_free_in_gb = (avg_free / 1024 / 1024).round(2)
+      rounded_avg_total_in_gb = (avg_total / 1024 / 1024).round(2)
+      mem = "#{rounded_avg_free_in_gb} / #{rounded_avg_total_in_gb}"
 
       { memory: mem,
         cpu: cpu_user,
