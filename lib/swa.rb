@@ -3,8 +3,9 @@ require "dotenv/load"
 require "tty"
 
 require "swa/globals"
-require "swa/cloud_client"
-require "swa/cloud_stats"
+require "swa/utils"
+require "swa/provider/cloud_client"
+require "swa/provider/cloud_stats"
 require "swa/application"
 
 module Swa
