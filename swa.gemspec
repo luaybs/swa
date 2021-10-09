@@ -9,9 +9,9 @@ Gem::Specification.new do |spec|
   spec.version       = Swa::VERSION
   spec.authors       = ["Luay Bseiso"]
   spec.email         = ["luaybs@gmail.com"]
-  spec.summary       = %q{ Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{ Write a longer description or delete this line.}
-  spec.homepage      = "http://luaybs.com"
+  spec.summary       = %q{ An alternative AWS CLI }
+  spec.description   = %q{ Written in Ruby this CLI helps you navigate specific AWS services and commands }
+  spec.homepage      = "http://www.luaybs.com"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
